@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SUPER DRY × Fimmick — Project Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -461,17 +461,23 @@ document.getElementById('pw-input').addEventListener('keydown', e => {
 async function loadTasks() {
   setSyncStatus('loading', 'Syncing…');
   try {
-    const { data, error } = await sb.from('superdry_tasks').select('*');
-    if (error) throw error;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/superdry_tasks?select=*`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
     taskDone = {};
     (data || []).forEach(row => {
       if (row.done) taskDone[row.task_key] = { done: true, completed_at: row.completed_at, completed_by: row.completed_by };
     });
-    setSyncStatus('ok', 'Live — synced ' + new Date().toLocaleTimeString());
+    setSyncStatus('ok', 'Live · synced ' + new Date().toLocaleTimeString());
     render();
   } catch (e) {
-    setSyncStatus('err', 'Sync error — using local cache');
-    console.error(e);
+    setSyncStatus('err', 'Sync error — retrying…');
+    console.error('Load error:', e);
   }
 }
 
@@ -479,22 +485,39 @@ async function toggleTask(key, isDone) {
   const now = new Date().toISOString();
   const by = isEditor ? 'Fimmick' : 'team';
   setSyncStatus('loading', 'Saving…');
+  // Optimistic update first
+  if (isDone) taskDone[key] = { done: true, completed_at: now, completed_by: by };
+  else delete taskDone[key];
+  render();
   try {
-    const { error } = await sb.from('superdry_tasks').upsert({
-      task_key: key,
-      done: isDone,
-      completed_at: isDone ? now : null,
-      completed_by: by,
-      updated_at: now
-    }, { onConflict: 'task_key' });
-    if (error) throw error;
-    if (isDone) taskDone[key] = { done: true, completed_at: now, completed_by: by };
-    else delete taskDone[key];
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/superdry_tasks`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({
+        task_key: key,
+        done: isDone,
+        completed_at: isDone ? now : null,
+        completed_by: by,
+        updated_at: now
+      })
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
     setSyncStatus('ok', 'Saved · ' + new Date().toLocaleTimeString());
-    render();
   } catch (e) {
-    setSyncStatus('err', 'Save failed');
-    console.error(e);
+    setSyncStatus('err', 'Save failed: ' + e.message);
+    console.error('Save error:', e);
+    // Revert optimistic update
+    if (isDone) delete taskDone[key];
+    else taskDone[key] = { done: true };
+    render();
   }
 }
 
