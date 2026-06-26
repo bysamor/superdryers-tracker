@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SUPER DRY × Fimmick — Project Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -342,11 +342,15 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://qorhdfgwfvamcpstdibz.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvcmhkZmd3ZnZhbWNwc3RkaWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTEyNzgsImV4cCI6MjA5MTM4NzI3OH0.N3wXpgIv5Q31Fwjdq7GT1hqpTYUoLmwt68l6M7jO0eE';
+const GIST_ID = 'df673939f091f35833024fd2b68dfbb6';
+const GIST_FILE = 'superdry_tasks.json';
+// Token stored in sessionStorage for security
+function getGistToken() {
+  return sessionStorage.getItem('gist_token') || '';
+}
 const EDITOR_PASSWORD = 'fimmick2026';
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let isEditor = false;
 let taskDone = {};
 let cf = 'all';
@@ -463,18 +467,17 @@ document.getElementById('pw-input').addEventListener('keydown', e => {
 async function loadTasks() {
   setSyncStatus('loading', 'Syncing…');
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/superdry_tasks?select=*`, {
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
       headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
+        'Authorization': `token ${getGistToken()}`,
+        'Accept': 'application/vnd.github.v3+json'
       }
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    taskDone = {};
-    (data || []).forEach(row => {
-      if (row.done) taskDone[row.task_key] = { done: true, completed_at: row.completed_at, completed_by: row.completed_by };
-    });
+    const gist = await res.json();
+    const raw = gist.files[GIST_FILE].content;
+    const data = JSON.parse(raw);
+    taskDone = data.tasks || {};
     setSyncStatus('ok', 'Live · synced ' + new Date().toLocaleTimeString());
     render();
   } catch (e) {
@@ -487,36 +490,32 @@ async function toggleTask(key, isDone) {
   const now = new Date().toISOString();
   const by = isEditor ? 'Fimmick' : 'team';
   setSyncStatus('loading', 'Saving…');
-  // Optimistic update first
+  // Optimistic update
   if (isDone) taskDone[key] = { done: true, completed_at: now, completed_by: by };
   else delete taskDone[key];
   render();
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/superdry_tasks`, {
-      method: 'POST',
+    // Save all tasks to Gist
+    const content = JSON.stringify({ tasks: taskDone }, null, 2);
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
       headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=minimal'
+        'Authorization': `token ${getGistToken()}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        task_key: key,
-        done: isDone,
-        completed_at: isDone ? now : null,
-        completed_by: by,
-        updated_at: now
+        files: {
+          [GIST_FILE]: { content }
+        }
       })
     });
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
-    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     setSyncStatus('ok', 'Saved · ' + new Date().toLocaleTimeString());
   } catch (e) {
     setSyncStatus('err', 'Save failed: ' + e.message);
     console.error('Save error:', e);
-    // Revert optimistic update
+    // Revert
     if (isDone) delete taskDone[key];
     else taskDone[key] = { done: true };
     render();
