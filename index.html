@@ -342,12 +342,160 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const GIST_ID = 'df673939f091f35833024fd2b68dfbb6';
-const GIST_FILE = 'superdry_tasks.json';
-// Token stored in sessionStorage for security
-function getGistToken() {
-  return sessionStorage.getItem('gist_token') || '';
-}
+// Task data stored in localStorage
+const STORAGE_KEY = 'superdry_tasks_v2';
+
+// Pre-load completed tasks if localStorage is empty
+(function() {
+  const existing = localStorage.getItem(STORAGE_KEY);
+  if (!existing || JSON.parse(existing).tasks === undefined || Object.keys(JSON.parse(existing).tasks || {}).length === 0) {
+    const preloaded = {
+  "tasks": {
+    "critical_1": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "critical_2": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "critical_3": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "critical_4": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "critical_5": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "critical_6": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "critical_7": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "critical_8": {
+      "done": true,
+      "completed_by": "Claude/MCP",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "critical_9": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "critical_10": {
+      "done": true,
+      "completed_by": "N/A \u2014 No manual penalty",
+      "completed_at": "2026-06-23T00:00:00Z"
+    },
+    "onpage_0": {
+      "done": true,
+      "completed_by": "Claude/MCP",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "onpage_1": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-23T00:00:00Z"
+    },
+    "onpage_2": {
+      "done": true,
+      "completed_by": "Claude/MCP",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "onpage_3": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-23T00:00:00Z"
+    },
+    "onpage_4": {
+      "done": true,
+      "completed_by": "Claude/MCP",
+      "completed_at": "2026-06-17T00:00:00Z"
+    },
+    "geo-quick_0": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-18T00:00:00Z"
+    },
+    "geo-quick_1": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-18T00:00:00Z"
+    },
+    "geo-quick_1b": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-18T00:00:00Z"
+    },
+    "geo-quick_1c": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-18T00:00:00Z"
+    },
+    "geo-quick_1d": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-18T00:00:00Z"
+    },
+    "geo-quick_2": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-18T00:00:00Z"
+    },
+    "schema_0": {
+      "done": true,
+      "completed_by": "Claude/MCP",
+      "completed_at": "2026-06-18T00:00:00Z"
+    },
+    "schema_1": {
+      "done": true,
+      "completed_by": "Claude/MCP",
+      "completed_at": "2026-06-18T00:00:00Z"
+    },
+    "schema_4": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-22T00:00:00Z"
+    },
+    "schema_5": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-22T00:00:00Z"
+    },
+    "content_0": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-23T00:00:00Z"
+    },
+    "content_1": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-23T00:00:00Z"
+    },
+    "content_2": {
+      "done": true,
+      "completed_by": "Fimmick",
+      "completed_at": "2026-06-23T00:00:00Z"
+    }
+  }
+};
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(preloaded));
+  }
+})();
 const EDITOR_PASSWORD = 'fimmick2026';
 
 
@@ -465,14 +613,12 @@ document.getElementById('pw-input').addEventListener('keydown', e => {
 
 // ── SUPABASE ──────────────────────────────────────────────────────────────────
 async function loadTasks() {
-  setSyncStatus('loading', 'Syncing…');
+  setSyncStatus('loading', 'Loading…');
   try {
-    // Use raw gist URL for reading (no auth needed for secret gist with direct URL)
-    const res = await fetch(`https://gist.githubusercontent.com/bysamor/${GIST_ID}/raw/${GIST_FILE}?t=${Date.now()}`);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const data = raw ? JSON.parse(raw) : {};
     taskDone = data.tasks || {};
-    setSyncStatus('ok', 'Live · synced ' + new Date().toLocaleTimeString());
+    setSyncStatus('ok', 'Loaded · ' + new Date().toLocaleTimeString());
     render();
   } catch (e) {
     setSyncStatus('err', 'Sync error — retrying…');
@@ -489,27 +635,11 @@ async function toggleTask(key, isDone) {
   else delete taskDone[key];
   render();
   try {
-    // Save all tasks to Gist
-    const content = JSON.stringify({ tasks: taskDone }, null, 2);
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `token ${getGistToken()}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        files: {
-          [GIST_FILE]: { content }
-        }
-      })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks: taskDone }));
     setSyncStatus('ok', 'Saved · ' + new Date().toLocaleTimeString());
   } catch (e) {
     setSyncStatus('err', 'Save failed: ' + e.message);
     console.error('Save error:', e);
-    // Revert
     if (isDone) delete taskDone[key];
     else taskDone[key] = { done: true };
     render();
