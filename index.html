@@ -1,588 +1,542 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-HK">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SUPER DRY × Fimmick — Project Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --navy:#0B1F3A;--sky:#1A6FAF;--mist:#E8F2FB;--slate:#6B7E94;--ink:#1C2B3A;
-  --border:#D0DEE8;--done:#1AAB6D;--done-bg:#E6F7F1;--warn:#E8931A;
-  --crit:#DC2626;--crit-bg:#FEF2F2;--bg:#F0F5FA;--white:#fff;
-}
-body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPER DRY × Fimmick — 項目儀表板</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #2c3e50;
+        }
 
-/* LOGIN SCREEN */
-#login-screen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
-#login-screen.hidden{display:none}
-.login-box{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:16px;padding:40px;max-width:400px;width:100%;text-align:center}
-.login-logo{width:52px;height:52px;background:var(--sky);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:#fff;margin:0 auto 20px}
-.login-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:6px}
-.login-sub{font-size:13px;color:var(--slate);margin-bottom:28px;font-family:'Space Mono',monospace;letter-spacing:.5px}
-.login-input{width:100%;padding:12px 16px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:14px;margin-bottom:12px;outline:none;text-align:center;letter-spacing:3px;font-size:18px}
-.login-input:focus{border-color:var(--sky)}
-.login-input::placeholder{letter-spacing:0;font-size:13px;color:var(--slate)}
-.login-btn{width:100%;padding:12px;background:var(--sky);border:none;border-radius:8px;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;margin-bottom:10px}
-.login-btn:hover{background:#1580C5}
-.login-error{font-size:12px;color:#f87171;margin-top:8px;display:none}
-.login-hint{font-size:11px;color:var(--slate);margin-top:16px}
-.login-view-btn{background:transparent;border:1.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);padding:10px;border-radius:8px;width:100%;font-family:'Space Grotesk',sans-serif;font-size:13px;cursor:pointer;transition:all .2s}
-.login-view-btn:hover{border-color:rgba(255,255,255,.3);color:#fff}
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
 
-/* HEADER */
-.header{background:var(--navy);border-bottom:3px solid var(--sky)}
-.header-inner{max-width:1100px;margin:0 auto;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.logo-row{display:flex;align-items:center;gap:12px}
-.logo{width:38px;height:38px;background:var(--sky);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#fff}
-.brand{color:#fff;font-size:15px;font-weight:700}
-.brand-sub{color:var(--slate);font-size:10px;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
-.header-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.live-pill{display:flex;align-items:center;gap:5px;background:rgba(26,171,109,.15);border:1px solid rgba(26,171,109,.35);border-radius:50px;padding:4px 10px;font-size:10px;font-weight:600;color:#1AAB6D;font-family:'Space Mono',monospace}
-.live-dot{width:6px;height:6px;border-radius:50%;background:#1AAB6D;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.hpct-wrap{text-align:right}
-.hpct{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--sky);line-height:1}
-.hpct-label{font-size:10px;color:var(--slate);text-transform:uppercase;letter-spacing:1px}
-.edit-badge{display:none;background:rgba(26,171,109,.15);border:1px solid rgba(26,171,109,.35);border-radius:50px;padding:4px 10px;font-size:10px;color:#1AAB6D;font-family:'Space Mono',monospace;cursor:pointer}
-.edit-badge.show{display:inline-flex;align-items:center;gap:4px}
-.pbar-wrap{background:var(--navy);padding:0 28px 14px}
-.pbar-inner{max-width:1100px;margin:0 auto;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
-.pbar-fill{height:100%;background:linear-gradient(90deg,var(--sky),var(--done));border-radius:2px;transition:width .6s}
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
 
-/* MAIN */
-.main{max-width:1100px;margin:0 auto;padding:28px 28px 80px}
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
 
-/* OVERVIEW */
-.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.ov-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:16px 18px}
-.ov-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--slate);font-family:'Space Mono',monospace;margin-bottom:6px}
-.ov-num{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--navy);line-height:1}
-.ov-sub{font-size:11px;color:var(--slate);margin-top:4px}
-.ov-card.hi{background:linear-gradient(135deg,#0D3B6E,var(--sky));border-color:var(--sky)}
-.ov-card.hi .ov-label{color:rgba(255,255,255,.6)}
-.ov-card.hi .ov-num{color:#fff}
-.ov-card.hi .ov-sub{color:rgba(255,255,255,.6)}
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
 
-/* BASELINE */
-.baseline{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:22px}
-.section-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.bl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.bl-item{background:var(--bg);border-radius:8px;padding:10px 12px}
-.bl-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--slate);font-family:'Space Mono',monospace;margin-bottom:4px}
-.bl-b{font-size:17px;font-weight:700;font-family:'Space Mono',monospace;color:var(--crit)}
-.bl-arr{font-size:11px;color:var(--slate);margin:0 5px}
-.bl-a{font-size:17px;font-weight:700;font-family:'Space Mono',monospace;color:var(--done)}
-.bl-t{font-size:11px;color:var(--slate);margin-top:3px}
+        .content {
+            padding: 40px;
+        }
 
-/* TABS */
-.tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
-.tab{padding:6px 14px;border-radius:100px;border:1.5px solid var(--border);background:var(--white);font-size:12px;font-weight:600;color:var(--slate);cursor:pointer;transition:all .2s;font-family:'Space Grotesk',sans-serif}
-.tab:hover{border-color:var(--sky);color:var(--sky)}
-.tab.active{background:var(--navy);border-color:var(--navy);color:#fff}
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
 
-/* SYNC STATUS */
-.sync-bar{background:var(--white);border:1.5px solid var(--border);border-radius:8px;padding:8px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--slate);font-family:'Space Mono',monospace}
-.sync-bar .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--done);display:inline-block;margin-right:6px}
-.sync-bar .sync-dot.loading{background:var(--warn);animation:pulse 1s infinite}
+        .metric-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f1f5 100%);
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
 
-/* PHASES */
-.phase{background:var(--white);border:1.5px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;transition:border-color .2s}
-.phase.has-done{border-color:rgba(26,171,109,.3)}
-.phase-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;user-select:none;transition:background .15s}
-.phase-hdr:hover{background:var(--mist)}
-.pbadge{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:3px 7px;border-radius:3px;flex-shrink:0}
-.b-crit{background:var(--crit-bg);color:var(--crit)}
-.b-schema{background:#EAE6F8;color:#5B3FC0}
-.b-content{background:var(--mist);color:var(--sky)}
-.b-expand{background:#FEF4E6;color:var(--warn)}
-.b-optim{background:var(--done-bg);color:var(--done)}
-.b-redirect{background:#E8EDF2;color:#0D3B6E}
-.ptitle{font-size:13px;font-weight:600;flex:1}
-.pdate{font-size:10px;color:var(--slate);font-family:'Space Mono',monospace;flex-shrink:0}
-.pcount{font-size:11px;color:var(--slate);white-space:nowrap;flex-shrink:0}
-.pcount b{color:var(--sky)}
-.pchev{color:var(--slate);transition:transform .2s;font-size:14px}
-.phase.open .pchev{transform:rotate(180deg)}
-.phase-body{display:none;padding:2px 18px 16px;border-top:1px solid var(--border)}
-.phase.open .phase-body{display:block}
+        .metric-card h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
 
-/* TASKS */
-.task{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #F0F5FA;transition:opacity .15s}
-.task:last-child{border-bottom:none}
-.task.editable{cursor:pointer}
-.task.editable:hover{opacity:.8}
-.tcheck{width:19px;height:19px;border:1.5px solid var(--border);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .2s;background:var(--white)}
-.task.done .tcheck{background:var(--done);border-color:var(--done)}
-.task.done .tcheck::after{content:'';width:4px;height:8px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px)}
-.ttext{font-size:13px;line-height:1.4;flex:1;color:var(--ink)}
-.task.done .ttext{color:var(--slate);text-decoration:line-through}
-.tnote{font-size:11px;color:var(--slate);margin-top:2px;font-style:italic}
-.tmeta{display:flex;align-items:center;gap:5px;margin-top:4px;flex-wrap:wrap}
-.ttag{font-size:9px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.5px;padding:2px 5px;border-radius:3px;text-transform:uppercase}
-.tag-seo{background:var(--mist);color:var(--sky)}
-.tag-aeo{background:#EAE6F8;color:#5B3FC0}
-.tag-geo{background:var(--done-bg);color:var(--done)}
-.tag-tech{background:#E8EDF2;color:#0D3B6E}
-.tag-crit{background:var(--crit-bg);color:var(--crit)}
-.tag-content{background:#FEF4E6;color:var(--warn)}
-.towner{font-size:10px;color:var(--slate)}
-.tcompleted{font-size:9px;color:var(--done);font-family:'Space Mono',monospace;margin-left:auto;flex-shrink:0}
-.tloading{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--sky);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;margin-top:2px}
-@keyframes spin{to{transform:rotate(360deg)}}
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
 
-/* COMPETITOR */
-.comp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:22px}
-.comp-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:16px 18px}
-.comp-card.us{border-color:var(--sky);background:var(--mist)}
-.comp-name{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px}
-.comp-card.us .comp-name{color:var(--sky)}
-.comp-hq{font-size:11px;color:var(--slate);margin-bottom:10px;font-family:'Space Mono',monospace}
-.threat-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;font-family:'Space Mono',monospace;text-transform:uppercase;margin-bottom:8px}
-.th-high{background:var(--crit-bg);color:var(--crit)}
-.th-us{background:var(--mist);color:var(--sky)}
-.th-med{background:#FEF4E6;color:var(--warn)}
-.score-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.score-label{font-size:10px;color:var(--slate);width:80px;flex-shrink:0}
-.score-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
-.score-fill{height:100%;border-radius:3px}
-.score-num{font-size:10px;font-weight:700;font-family:'Space Mono',monospace;width:30px;text-align:right}
-.comp-note{font-size:11px;color:var(--slate);margin-top:8px}
+        .metric-target {
+            font-size: 12px;
+            color: #667eea;
+        }
 
-/* KPI TABLE */
-.kpi-wrap{overflow-x:auto;margin-bottom:22px}
-.kpi-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:12px;overflow:hidden;border:1.5px solid var(--border)}
-.kpi-table th{background:var(--navy);color:#fff;padding:9px 12px;text-align:left;font-size:10px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap}
-.kpi-table td{padding:9px 12px;font-size:12px;border-bottom:1px solid var(--border)}
-.kpi-table tr:last-child td{border-bottom:none}
-.kpi-table tr:hover td{background:var(--mist)}
-.kpi-kw{font-weight:600;color:var(--navy)}
-.kpi-b{color:var(--crit);font-family:'Space Mono',monospace;font-size:11px}
-.kpi-t3{color:var(--done);font-family:'Space Mono',monospace;font-size:11px}
-.kpi-t6{color:var(--sky);font-family:'Space Mono',monospace;font-size:11px}
-.diff-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;font-family:'Space Mono',monospace;text-transform:uppercase}
-.diff-easy{background:var(--done-bg);color:var(--done)}
-.diff-med{background:#FEF4E6;color:var(--warn)}
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
 
-.footer{background:var(--navy);padding:20px 28px;text-align:center;margin-top:40px}
-.footer p{color:var(--slate);font-size:11px;font-family:'Space Mono',monospace}
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
 
-@media(max-width:768px){
-  .overview{grid-template-columns:repeat(2,1fr)}
-  .bl-grid,.comp-grid{grid-template-columns:1fr}
-}
-@media(max-width:480px){
-  .overview{grid-template-columns:1fr}
-  .main{padding:18px 14px 60px}
-}
-</style>
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .task-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            grid-column: 1 / -1;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .tasks-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .task-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .task-item.completed {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 6px;
+        }
+
+        .task-meta {
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .task-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-critical { background: #fecaca; color: #991b1b; }
+        .badge-tech { background: #bfdbfe; color: #1e40af; }
+        .badge-seo { background: #c7d2fe; color: #3730a3; }
+        .badge-aeo { background: #fcd34d; color: #7c2d12; }
+        .badge-content { background: #d1fae5; color: #065f46; }
+        .badge-geo { background: #fae8ff; color: #581c87; }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: #667eea;
+            cursor: pointer;
+        }
+
+        .keyword-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .keyword-table th {
+            background: #f5f7fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .keyword-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .keyword-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: #27ae60;
+            color: white;
+            border-radius: 6px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 SUPER DRY × Fimmick</h1>
+            <p>SEO / AEO / GEO Project Dashboard — June to August 2026</p>
+        </div>
 
-<!-- LOGIN SCREEN -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">SD</div>
-    <div class="login-title">SUPER DRY × Fimmick</div>
-    <div class="login-sub">Project Dashboard · SEO/AEO/GEO 2026</div>
-    <input class="login-input" type="password" id="pw-input" placeholder="Enter password to edit" maxlength="20">
-    <button class="login-btn" onclick="tryLogin()">Login as Editor</button>
-    <div class="login-error" id="pw-error">Incorrect password. Try again.</div>
-    <div class="login-hint">Clients & teammates: view only</div>
-    <button class="login-view-btn" onclick="viewOnly()" style="margin-top:10px">View Dashboard (read-only) →</button>
-  </div>
-</div>
+        <div class="content">
+            <!-- Metrics -->
+            <div class="metrics">
+                <div class="metric-card">
+                    <h3>Overall Progress</h3>
+                    <div class="metric-value"><span id="totalProgress">45</span>%</div>
+                    <div class="metric-target" id="tasksProgress">29 of 64 tasks</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar" style="width: 45%"></div>
+                    </div>
+                </div>
 
-<!-- HEADER -->
-<div class="header">
-  <div class="header-inner">
-    <div class="logo-row">
-      <div class="logo">SD</div>
-      <div>
-        <div class="brand">SUPER DRY × Fimmick — Project Dashboard</div>
-        <div class="brand-sub">SEO · AEO · GEO · June–August 2026 · superdryers.com</div>
-      </div>
-    </div>
-    <div class="header-right">
-      <div class="live-pill"><span class="live-dot"></span>Live Sync</div>
-      <span class="edit-badge" id="edit-badge">✏️ Editor Mode</span>
-      <div class="hpct-wrap">
-        <div class="hpct" id="hpct">0%</div>
-        <div class="hpct-label">Complete</div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="pbar-wrap"><div class="pbar-inner"><div class="pbar-fill" id="pbar" style="width:0%"></div></div></div>
+                <div class="metric-card">
+                    <h3>Technical SEO</h3>
+                    <div class="metric-value"><span id="techScore">—</span>/100</div>
+                    <div class="metric-target">Target: 80+</div>
+                </div>
 
-<!-- MAIN -->
-<div class="main">
+                <div class="metric-card">
+                    <h3>Schema Score</h3>
+                    <div class="metric-value"><span id="schemaScore">5</span>/100</div>
+                    <div class="metric-target">Target: 90+</div>
+                </div>
 
-  <!-- OVERVIEW -->
-  <div class="overview">
-    <div class="ov-card hi">
-      <div class="ov-label">Overall Progress</div>
-      <div class="ov-num" id="ov-pct">0%</div>
-      <div class="ov-sub" id="ov-sub">Loading…</div>
-    </div>
-    <div class="ov-card">
-      <div class="ov-label">Technical SEO</div>
-      <div class="ov-num">54<span style="font-size:15px">/100</span></div>
-      <div class="ov-sub">Baseline · Target: 80+</div>
-    </div>
-    <div class="ov-card">
-      <div class="ov-label">Schema Score</div>
-      <div class="ov-num">5<span style="font-size:15px">/100</span></div>
-      <div class="ov-sub">Baseline · Target: 90+</div>
-    </div>
-    <div class="ov-card">
-      <div class="ov-label">GEO / AI Score</div>
-      <div class="ov-num">28<span style="font-size:15px">/100</span></div>
-      <div class="ov-sub">Baseline · Target: 65</div>
-    </div>
-  </div>
-
-  <!-- BASELINE -->
-  <div class="baseline">
-    <div class="section-title">📊 Research Baselines → 3-Month Targets</div>
-    <div class="bl-grid">
-      <div class="bl-item">
-        <div class="bl-label">GEO / AI Visibility</div>
-        <div><span class="bl-b">28/100</span><span class="bl-arr">→</span><span class="bl-a">45/100</span></div>
-        <div class="bl-t">Month 3 · Month 6: 65/100</div>
-      </div>
-      <div class="bl-item">
-        <div class="bl-label">Schema / Structured Data</div>
-        <div><span class="bl-b">5/100</span><span class="bl-arr">→</span><span class="bl-a">60/100</span></div>
-        <div class="bl-t">Month 3 · Month 6: 90/100</div>
-      </div>
-      <div class="bl-item">
-        <div class="bl-label">Organic Sessions/Month</div>
-        <div><span class="bl-b">Baseline</span><span class="bl-arr">→</span><span class="bl-a">+20%</span></div>
-        <div class="bl-t">Month 3 · Month 6: +50%</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SYNC BAR -->
-  <div class="sync-bar">
-    <div><span class="sync-dot" id="sync-dot"></span><span id="sync-status">Connecting to database…</span></div>
-    <div id="sync-time"></div>
-  </div>
-
-  <!-- TASK TRACKER -->
-  <div class="section-title">✅ Implementation Tracker</div>
-  <div class="tabs">
-    <button class="tab active" onclick="filterPhase('all',this)">All Phases</button>
-    <button class="tab" onclick="filterPhase('june',this)">June 2026</button>
-    <button class="tab" onclick="filterPhase('july',this)">July 2026</button>
-    <button class="tab" onclick="filterPhase('august',this)">August 2026</button>
-    <button class="tab" onclick="filterPhase('critical',this)">🔴 Critical</button>
-  </div>
-  <div id="phases"></div>
-
-  <!-- COMPETITOR -->
-  <div class="section-title" style="margin-top:28px">🏆 Competitor Landscape 2026</div>
-  <div class="comp-grid">
-    <div class="comp-card us">
-      <div class="comp-name">SUPER DRY International</div>
-      <div class="comp-hq">📍 Singapore · Our Client</div>
-      <span class="threat-badge th-us">OUR CLIENT</span>
-      <div class="score-row"><div class="score-label">GEO Score</div><div class="score-bar"><div class="score-fill" style="width:28%;background:#DC2626"></div></div><div class="score-num" style="color:#DC2626">28</div></div>
-      <div class="score-row"><div class="score-label">Tech SEO</div><div class="score-bar"><div class="score-fill" style="width:54%;background:var(--sky)"></div></div><div class="score-num" style="color:var(--sky)">54</div></div>
-      <div class="comp-note">✅ Asia #1 ranked · desiccantglobal.com 2026</div>
-    </div>
-    <div class="comp-card">
-      <div class="comp-name">Absortech</div>
-      <div class="comp-hq">📍 Falkenberg, Sweden</div>
-      <span class="threat-badge th-high">🔴 Primary Threat</span>
-      <div class="score-row"><div class="score-label">GEO Score</div><div class="score-bar"><div class="score-fill" style="width:72%;background:var(--crit)"></div></div><div class="score-num" style="color:var(--crit)">72</div></div>
-      <div class="comp-note">⚠️ "Moisture Magazine" blog drives AI citations</div>
-    </div>
-    <div class="comp-card">
-      <div class="comp-name">Clariant</div>
-      <div class="comp-hq">📍 Muttenz, Switzerland</div>
-      <span class="threat-badge th-high">🔴 Primary Threat</span>
-      <div class="score-row"><div class="score-label">GEO Score</div><div class="score-bar"><div class="score-fill" style="width:72%;background:var(--crit)"></div></div><div class="score-num" style="color:var(--crit)">72</div></div>
-      <div class="comp-note">⚠️ Wikipedia presence · Enterprise authority</div>
-    </div>
-    <div class="comp-card">
-      <div class="comp-name">Stream Peak International</div>
-      <div class="comp-hq">📍 Singapore · Direct Local Competitor</div>
-      <span class="threat-badge th-high">🔴 Local Threat</span>
-      <div class="score-row"><div class="score-label">GEO Score</div><div class="score-bar"><div class="score-fill" style="width:45%;background:var(--warn)"></div></div><div class="score-num" style="color:var(--warn)">~45</div></div>
-      <div class="comp-note">⚠️ Same city · Broader portfolio (VCI + desiccant)</div>
-    </div>
-  </div>
-
-  <!-- KPI TABLE -->
-  <div class="section-title">🎯 15 Keywords to Track</div>
-  <div class="kpi-wrap">
-    <table class="kpi-table">
-      <thead><tr><th>Keyword</th><th>Difficulty</th><th>Baseline</th><th>Month 3 Target</th><th>Month 6 Target</th></tr></thead>
-      <tbody>
-        <tr><td class="kpi-kw">container desiccant</td><td><span class="diff-badge diff-med">Medium</span></td><td class="kpi-b">Page 2–3</td><td class="kpi-t3">Page 1</td><td class="kpi-t6">Top 5</td></tr>
-        <tr><td class="kpi-kw">container rain prevention</td><td><span class="diff-badge diff-easy">Easy</span></td><td class="kpi-b">Unranked</td><td class="kpi-t3">Top 10</td><td class="kpi-t6">Top 3</td></tr>
-        <tr><td class="kpi-kw">desiccant manufacturer</td><td><span class="diff-badge diff-med">Medium</span></td><td class="kpi-b">Unranked</td><td class="kpi-t3">Page 1</td><td class="kpi-t6">Top 5</td></tr>
-        <tr><td class="kpi-kw">how many desiccants for container</td><td><span class="diff-badge diff-easy">Easy</span></td><td class="kpi-b">Unranked</td><td class="kpi-t3">Featured Snippet</td><td class="kpi-t6">Featured Snippet</td></tr>
-        <tr><td class="kpi-kw">calcium chloride vs silica gel</td><td><span class="diff-badge diff-easy">Easy</span></td><td class="kpi-b">Unranked</td><td class="kpi-t3">Top 10</td><td class="kpi-t6">Top 3</td></tr>
-        <tr><td class="kpi-kw">desiccant garment shipping 🏆</td><td><span class="diff-badge diff-easy">Easy</span></td><td class="kpi-b">Unranked</td><td class="kpi-t3">Top 5</td><td class="kpi-t6">Top 1</td></tr>
-        <tr><td class="kpi-kw">best desiccant for shipping containers</td><td><span class="diff-badge diff-easy">Easy</span></td><td class="kpi-b">Unranked</td><td class="kpi-t3">Top 10</td><td class="kpi-t6">Top 3</td></tr>
-        <tr><td class="kpi-kw">super dry vs absortech</td><td><span class="diff-badge diff-easy">Easy</span></td><td class="kpi-b">Unranked</td><td class="kpi-t3">Top 3</td><td class="kpi-t6">Top 1</td></tr>
-        <tr><td class="kpi-kw">moisture absorber bags for containers</td><td><span class="diff-badge diff-med">Medium</span></td><td class="kpi-b">Page 1–2</td><td class="kpi-t3">Top 5</td><td class="kpi-t6">Top 3</td></tr>
-        <tr><td class="kpi-kw">cargo moisture protection</td><td><span class="diff-badge diff-med">Medium</span></td><td class="kpi-b">Unranked</td><td class="kpi-t3">Page 1</td><td class="kpi-t6">Top 5</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<div class="footer"><p>SUPER DRY × Fimmick · SEO / AEO / GEO Project Dashboard · June–August 2026</p></div>
-
-<script>
-// ── CONFIG ────────────────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://qorhdfgwfvamcpstdibz.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvcmhkZmd3ZnZhbWNwc3RkaWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTEyNzgsImV4cCI6MjA5MTM4NzI3OH0.N3wXpgIv5Q31Fwjdq7GT1hqpTYUoLmwt68l6M7jO0eE';
-const EDITOR_PASSWORD = 'fimmick2026';
-
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let isEditor = false;
-let taskDone = {};
-let cf = 'all';
-
-// ── PHASES DATA ───────────────────────────────────────────────────────────────
-const PHASES = [
-  {id:'critical',month:'june',badge:'🔴 CRITICAL',bc:'b-crit',title:'Week 01 — Technical Foundation',date:'June 2–6',tasks:[
-    {t:'Upload new robots.txt (CSS/JS blocks removed)',tag:'tech',owner:'Dev',effort:'5 min'},
-    {t:'Fix typo URL → 301 to /moisture-damage-prevention/ (all 10 languages)',tag:'crit',owner:'Dev',effort:'Done ✅'},
-    {t:'Delete 3 conflicting plugins: All in One SEO · Smush Pro · GA Analytics',tag:'tech',owner:'Dev',effort:'10 min'},
-    {t:'Set timezone to Asia/Singapore (+08:00)',tag:'tech',owner:'Dev',effort:'2 min'},
-    {t:'Set site tagline (currently blank)',tag:'seo',owner:'SEO',effort:'5 min'},
-    {t:'Add Organization + WebSite JSON-LD to homepage via WPCode Lite',tag:'aeo',owner:'SEO',effort:'2 hrs'},
-    {t:'Enable BreadcrumbList in Yoast SEO',tag:'seo',owner:'Dev',effort:'5 min'},
-    {t:'Add x-default hreflang tag',tag:'seo',owner:'Dev',effort:'30 min'},
-    {t:'Fix OG type on product pages: article → product',tag:'seo',owner:'Dev',effort:'30 min'},
-    {t:'Create llms.txt file for AI crawlers',tag:'geo',owner:'SEO',effort:'1 hr'},
-    {t:'Submit disavow file to Google Search Console',tag:'seo',owner:'SEO',effort:'30 min'},
-  ]},
-  {id:'redirects',month:'june',badge:'301 REDIRECTS',bc:'b-redirect',title:'Week 01 — Duplicate Pages Fix',date:'June 2–6',tasks:[
-    {t:'301: /about-us/ → /super-dry-story/',tag:'tech',owner:'Dev',effort:'5 min'},
-    {t:'301: /products-and-services/ → /general-introduction-super-dry-desiccants/',tag:'tech',owner:'Dev',effort:'5 min'},
-    {t:'301: /knowledge-center/ → /desiccants/',tag:'tech',owner:'Dev',effort:'5 min'},
-    {t:'301: /corporate-social-responsibility/ → /social-responsibilities/',tag:'tech',owner:'Dev',effort:'5 min'},
-    {t:'Noindex /style-guide/ developer page',tag:'tech',owner:'Dev',effort:'5 min'},
-    {t:'Resolve /cn/ vs /zh/ Chinese URL conflict',tag:'tech',owner:'Strategy',effort:'1 hr'},
-  ]},
-  {id:'onpage',month:'june',badge:'ON-PAGE SEO',bc:'b-schema',title:'Week 01 — Homepage + Key Pages',date:'June 2–6',tasks:[
-    {t:'Update homepage H1 → "SUPER DRY — Global Desiccant Manufacturer"',tag:'seo',owner:'SEO',effort:'15 min'},
-    {t:'Rewrite homepage meta description (40,000+ customers, ISO-certified)',tag:'seo',owner:'SEO',effort:'20 min'},
-    {t:'Rewrite /desiccants/ title + write meta description',tag:'seo',owner:'SEO',effort:'25 min'},
-    {t:'Replace all "Learn More" with descriptive anchor text',tag:'seo',owner:'SEO',effort:'2 hrs'},
-    {t:'Add CTAs on /moisture-damage/ linking to product pages',tag:'seo',owner:'SEO',effort:'30 min'},
-    {t:'Add security headers: HSTS, X-Content-Type, X-Frame-Options',tag:'tech',owner:'Dev',effort:'1 hr'},
-  ]},
-  {id:'geo-quick',month:'june',badge:'GEO QUICK WINS',bc:'b-schema',title:'Week 01 — AI Visibility (Baseline: 28/100)',date:'June 2–6',tasks:[
-    {t:'Add 60–100 word direct-answer paragraph to /container-desiccants/',tag:'geo',owner:'SEO',effort:'1 hr'},
-    {t:'Add direct-answer paragraphs to all Knowledge Center pages',tag:'geo',owner:'SEO',effort:'3 hrs'},
-    {t:'Update /super-dry-story/ with entity facts (founded 2000, 40,000+ customers)',tag:'geo',owner:'SEO',effort:'2 hrs'},
-    {t:'Promote Asia #1 ranking (desiccantglobal.com 2026) on homepage',tag:'geo',owner:'SEO',effort:'30 min'},
-    {t:'Claim Thomasnet + Crunchbase + update LinkedIn',tag:'geo',owner:'SEO',effort:'2 hrs'},
-    {t:'Answer 2 questions on Reddit r/supplychain + r/logistics',tag:'geo',owner:'SEO',effort:'1 hr'},
-  ]},
-  {id:'schema',month:'june',badge:'SCHEMA BLITZ',bc:'b-schema',title:'Week 02 — Schema Deployment',date:'June 9–13',tasks:[
-    {t:'Deploy Product schema on all 378 products',tag:'aeo',owner:'Dev',effort:'3 hrs'},
-    {t:'Deploy Article schema hook (auto on new posts)',tag:'aeo',owner:'Dev',effort:'1 hr'},
-    {t:'Deploy HowTo schema for installation guides',tag:'aeo',owner:'Dev',effort:'1 hr'},
-    {t:'Deploy VideoObject schema for YouTube pages',tag:'aeo',owner:'Dev',effort:'1 hr'},
-    {t:'FAQPage schema: homepage + /container-desiccants/ + 4 key pages',tag:'aeo',owner:'Dev',effort:'2 hrs'},
-    {t:'Fix hero banner: convert to WebP <150KB + srcset (LCP fix)',tag:'tech',owner:'Dev',effort:'3 hrs'},
-    {t:'Validate all schema with Google Rich Results Test',tag:'aeo',owner:'SEO',effort:'1 hr'},
-  ]},
-  {id:'content',month:'june',badge:'CONTENT LAUNCH',bc:'b-content',title:'Week 3–4 — First 5 Articles',date:'June 16–27',tasks:[
-    {t:'Set up WordPress /knowledge-base/ URL structure',tag:'tech',owner:'Dev',effort:'2 hrs'},
-    {t:'Publish Article 1: "What Is Container Rain?"',tag:'content',owner:'Content',effort:'3 hrs'},
-    {t:'Publish Article 2: "How Many Desiccants for a Container?"',tag:'content',owner:'Content',effort:'3 hrs'},
-    {t:'Publish Article 3: "Calcium Chloride vs Silica Gel"',tag:'content',owner:'Content',effort:'3 hrs'},
-    {t:'Publish Article 4: "Real Cost of Cargo Moisture Damage" (Data Study)',tag:'content',owner:'Content',effort:'4 hrs'},
-    {t:'Publish Article 5: "Desiccants for Garment Shipping" 🏆 PRIORITY',tag:'content',owner:'Content',effort:'3 hrs'},
-    {t:'Pitch Article 4 to FreightWaves, The Loadstar, Supply Chain Dive',tag:'geo',owner:'SEO',effort:'2 hrs'},
-    {t:'Standardise "SUPER DRY" (ALL CAPS) on all external platforms',tag:'geo',owner:'SEO',effort:'2 hrs'},
-  ]},
-  {id:'expansion',month:'july',badge:'EXPANSION',bc:'b-expand',title:'Month 02 — Expansion',date:'July 2026',tasks:[
-    {t:'Publish 8 more articles (2/week): Footwear, Furniture, Electronics, Food…',tag:'content',owner:'Content',effort:'Ongoing'},
-    {t:'Create Wikidata entry for SUPER DRY International Pte Ltd',tag:'geo',owner:'SEO',effort:'2 hrs'},
-    {t:'Publish SUPER DRY vs Absortech comparison article',tag:'geo',owner:'Content',effort:'3 hrs'},
-    {t:'Build /compare/ hub: vs Absortech, vs Stream Peak, vs Clariant',tag:'seo',owner:'Content',effort:'3 hrs'},
-    {t:'Submit to 5 directories: Thomasnet, Made-in-China, TradeKey, iDesicCant, Alibaba',tag:'seo',owner:'SEO',effort:'2 hrs'},
-    {t:'Launch trade press outreach campaign',tag:'geo',owner:'SEO',effort:'3 hrs'},
-    {t:'Create Case Study 1: Apparel industry client',tag:'geo',owner:'Content',effort:'3 hrs'},
-    {t:'Create Case Study 2: Electronics or Automotive client',tag:'geo',owner:'Content',effort:'3 hrs'},
-    {t:'Activate n8n monthly monitoring workflow',tag:'tech',owner:'Dev',effort:'2 hrs'},
-  ]},
-  {id:'optimization',month:'august',badge:'OPTIMIZATION',bc:'b-optim',title:'Month 03 — Optimization',date:'August 2026',tasks:[
-    {t:'Complete 24-article library',tag:'content',owner:'Content',effort:'Ongoing'},
-    {t:'Translate top 3 articles: German, French, Spanish',tag:'seo',owner:'Content',effort:'3 hrs each'},
-    {t:'Translate GEO content: Bahasa Indonesia, Thai, Vietnamese',tag:'geo',owner:'Content',effort:'3 hrs each'},
-    {t:'Full hreflang audit — validate all 10 language versions',tag:'seo',owner:'Dev',effort:'2 hrs'},
-    {t:'Add VideoObject + HowTo + ItemList schema to new pages',tag:'aeo',owner:'Dev',effort:'2 hrs'},
-    {t:'Launch /resource-hub/ aggregator page',tag:'content',owner:'Dev',effort:'2 hrs'},
-    {t:'Re-audit vs Absortech + Stream Peak',tag:'aeo',owner:'SEO',effort:'3 hrs'},
-    {t:'AI visibility re-test: ChatGPT / Claude / Gemini / Perplexity',tag:'geo',owner:'SEO',effort:'2 hrs'},
-    {t:'Deliver full Month 3 before/after client report',tag:'tech',owner:'PM',effort:'3 hrs'},
-  ]},
-];
-
-// ── AUTH ──────────────────────────────────────────────────────────────────────
-function tryLogin() {
-  const pw = document.getElementById('pw-input').value;
-  if (pw === EDITOR_PASSWORD) {
-    isEditor = true;
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('edit-badge').classList.add('show');
-    render();
-  } else {
-    document.getElementById('pw-error').style.display = 'block';
-    document.getElementById('pw-input').value = '';
-  }
-}
-
-function viewOnly() {
-  isEditor = false;
-  document.getElementById('login-screen').classList.add('hidden');
-  render();
-}
-
-document.getElementById('pw-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') tryLogin();
-});
-
-// ── SUPABASE ──────────────────────────────────────────────────────────────────
-async function loadTasks() {
-  setSyncStatus('loading', 'Syncing…');
-  try {
-    const { data, error } = await sb.from('superdry_tasks').select('*');
-    if (error) throw error;
-    taskDone = {};
-    (data || []).forEach(row => {
-      if (row.done) taskDone[row.task_key] = { done: true, completed_at: row.completed_at, completed_by: row.completed_by };
-    });
-    setSyncStatus('ok', 'Live — synced ' + new Date().toLocaleTimeString());
-    render();
-  } catch (e) {
-    setSyncStatus('err', 'Sync error — using local cache');
-    console.error(e);
-  }
-}
-
-async function toggleTask(key, isDone) {
-  const now = new Date().toISOString();
-  const by = isEditor ? 'Fimmick' : 'team';
-  setSyncStatus('loading', 'Saving…');
-  try {
-    const { error } = await sb.from('superdry_tasks').upsert({
-      task_key: key,
-      done: isDone,
-      completed_at: isDone ? now : null,
-      completed_by: by,
-      updated_at: now
-    }, { onConflict: 'task_key' });
-    if (error) throw error;
-    if (isDone) taskDone[key] = { done: true, completed_at: now, completed_by: by };
-    else delete taskDone[key];
-    setSyncStatus('ok', 'Saved · ' + new Date().toLocaleTimeString());
-    render();
-  } catch (e) {
-    setSyncStatus('err', 'Save failed');
-    console.error(e);
-  }
-}
-
-function setSyncStatus(state, msg) {
-  const dot = document.getElementById('sync-dot');
-  const status = document.getElementById('sync-status');
-  dot.className = 'sync-dot' + (state === 'loading' ? ' loading' : '');
-  dot.style.background = state === 'ok' ? 'var(--done)' : state === 'loading' ? 'var(--warn)' : 'var(--crit)';
-  status.textContent = msg;
-}
-
-// ── RENDER ────────────────────────────────────────────────────────────────────
-function render() {
-  const c = document.getElementById('phases'); c.innerHTML = '';
-  const filtered = cf === 'all' ? PHASES
-    : cf === 'critical' ? PHASES.filter(p => p.id === 'critical' || p.id === 'redirects')
-    : PHASES.filter(p => p.month === cf);
-
-  filtered.forEach(ph => {
-    const dc = ph.tasks.filter((_, i) => taskDone[ph.id + '_' + i]).length;
-    const d = document.createElement('div');
-    d.className = 'phase open' + (dc > 0 ? ' has-done' : '');
-    d.innerHTML = `
-      <div class="phase-hdr" onclick="togglePhase(this)">
-        <span class="pbadge ${ph.bc}">${ph.badge}</span>
-        <div class="ptitle">${ph.title}</div>
-        <div class="pdate">${ph.date}</div>
-        <div class="pcount"><b>${dc}</b>/${ph.tasks.length} done</div>
-        <div class="pchev">▾</div>
-      </div>
-      <div class="phase-body">
-        ${ph.tasks.map((t, i) => {
-          const k = ph.id + '_' + i;
-          const td = taskDone[k];
-          const isDone = !!td;
-          const tc = {seo:'tag-seo',aeo:'tag-aeo',geo:'tag-geo',tech:'tag-tech',crit:'tag-crit',content:'tag-content'}[t.tag] || 'tag-seo';
-          const completedStr = td && td.completed_at ? new Date(td.completed_at).toLocaleDateString('en-GB') + ' · ' + (td.completed_by || 'team') : '';
-          return `<div class="task ${isDone ? 'done' : ''} ${isEditor ? 'editable' : ''}" onclick="${isEditor ? `doToggle('${k}',${!isDone})` : ''}">
-            <div class="tcheck"></div>
-            <div style="flex:1">
-              <div class="ttext">${t.t}</div>
-              ${t.note ? `<div class="tnote">${t.note}</div>` : ''}
-              <div class="tmeta">
-                <span class="ttag ${tc}">${t.tag.toUpperCase()}</span>
-                ${t.owner ? `<span class="towner">· ${t.owner}</span>` : ''}
-                ${t.effort ? `<span style="font-size:10px;color:#A0A9B4">· ${t.effort}</span>` : ''}
-                ${completedStr ? `<span class="tcompleted">✓ ${completedStr}</span>` : ''}
-              </div>
+                <div class="metric-card">
+                    <h3>GEO / AI Score</h3>
+                    <div class="metric-value"><span id="geoScore">28</span>/100</div>
+                    <div class="metric-target">Target: 65+</div>
+                </div>
             </div>
-          </div>`;
-        }).join('')}
-      </div>`;
-    c.appendChild(d);
-  });
-  updateStats();
-}
 
-function doToggle(key, newState) {
-  if (!isEditor) return;
-  toggleTask(key, newState);
-}
+            <!-- Add Task -->
+            <div class="section">
+                <h2 class="section-title">➕ Add Task</h2>
+                <div class="task-form">
+                    <div class="form-group">
+                        <input type="text" id="taskTitle" placeholder="Task Title" required>
+                        <select id="taskType">
+                            <option value="TECH">TECH</option>
+                            <option value="SEO">SEO</option>
+                            <option value="AEO">AEO</option>
+                            <option value="CONTENT">CONTENT</option>
+                            <option value="GEO">GEO</option>
+                            <option value="CRIT">CRIT</option>
+                        </select>
+                        <select id="taskStatus">
+                            <option value="pending">Pending</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="taskDescription" placeholder="Task Description (Optional)" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <input type="date" id="taskDueDate">
+                        <input type="text" id="taskAssignee" placeholder="Assignee">
+                        <button class="btn btn-primary" onclick="addTask()">+ Add Task</button>
+                    </div>
+                </div>
+            </div>
 
-function togglePhase(hdr) {
-  const ph = hdr.parentElement;
-  ph.classList.toggle('open');
-  hdr.querySelector('.pchev').style.transform = ph.classList.contains('open') ? 'rotate(180deg)' : '';
-}
+            <!-- Task List -->
+            <div class="section">
+                <h2 class="section-title">📋 Task Tracker</h2>
+                <div class="tasks-list" id="tasksList">
+                    <!-- Dynamic -->
+                </div>
+            </div>
 
-function filterPhase(f, btn) {
-  cf = f;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  render();
-}
+            <!-- Keywords -->
+            <div class="section">
+                <h2 class="section-title">🔍 15 Keywords to Track</h2>
+                <table class="keyword-table">
+                    <thead>
+                        <tr>
+                            <th>Keyword</th>
+                            <th>Difficulty</th>
+                            <th>Baseline Rank</th>
+                            <th>Month 3 Target</th>
+                            <th>Month 6 Target</th>
+                        </tr>
+                    </thead>
+                    <tbody id="keywordTable">
+                        <!-- Dynamic -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-function updateStats() {
-  const total = PHASES.reduce((s, p) => s + p.tasks.length, 0);
-  const dc = Object.keys(taskDone).filter(k => taskDone[k]).length;
-  const pct = Math.round(dc / total * 100);
-  document.getElementById('hpct').textContent = pct + '%';
-  document.getElementById('ov-pct').textContent = pct + '%';
-  document.getElementById('ov-sub').textContent = dc + ' of ' + total + ' tasks complete';
-  document.getElementById('pbar').style.width = pct + '%';
-}
+    <div class="save-indicator" id="saveIndicator">✅ Saved to local storage</div>
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
-loadTasks();
-setInterval(loadTasks, 60000);
-</script>
+    <script>
+        const STORAGE_KEY = 'superdryers-dashboard';
+
+        const defaultData = {
+            tasks: [
+                { id: 1, title: "Article 01: Calcium Chloride vs Silica Gel", type: "CONTENT", status: "completed", dueDate: "2026-06-27", assignee: "Fimmick", description: "Published on superdryers.com" },
+                { id: 2, title: "Article 02: Best Desiccant Buyer's Guide", type: "CONTENT", status: "completed", dueDate: "2026-06-27", assignee: "Fimmick", description: "Published on superdryers.com" },
+                { id: 3, title: "Article 03: Moisture Absorbers Guide", type: "CONTENT", status: "completed", dueDate: "2026-06-27", assignee: "Fimmick", description: "Published on superdryers.com" },
+                { id: 4, title: "Article 04: Pillar Page (What is Container Desiccant)", type: "CONTENT", status: "pending", dueDate: "2026-07-10", assignee: "Fimmick", description: "Core pillar - other articles link to this" },
+                { id: 5, title: "Article 05-08: Complete 4 remaining articles", type: "CONTENT", status: "pending", dueDate: "2026-07-31", assignee: "Fimmick", description: "Neutral comparisons & comprehensive guides" },
+                { id: 6, title: "Delete duplicate FAQPage schema on Article 01", type: "AEO", status: "completed", dueDate: "2026-08-03", assignee: "User", description: "Removed 2nd JSON-LD block" },
+                { id: 7, title: "Remove HTML production comments from 4 articles", type: "TECH", status: "in-progress", dueDate: "2026-08-04", assignee: "User", description: "Strip <!-- SLUG: ... --> blocks before publishing" },
+                { id: 8, title: "URL Inspection verify other 3 articles indexed", type: "SEO", status: "pending", dueDate: "2026-08-05", assignee: "User", description: "GSC check: Article 01 EN, 03 EN, 01 zh-HK" },
+                { id: 9, title: "Contact client to verify Appendix C checklist", type: "GEO", status: "pending", dueDate: "2026-08-06", assignee: "Fimmick", description: "Data verification: absorption %, certifications, dosage" },
+                { id: 10, title: "Publish Article 04–08", type: "CONTENT", status: "pending", dueDate: "2026-08-15", assignee: "Fimmick", description: "After client approval on Appendix C items" }
+            ],
+            keywords: [
+                { keyword: "container desiccant", difficulty: "Medium", baseline: "Page 2–3", m3: "Page 1", m6: "Top 5" },
+                { keyword: "container rain prevention", difficulty: "Easy", baseline: "Unranked", m3: "Top 10", m6: "Top 3" },
+                { keyword: "desiccant manufacturer", difficulty: "Medium", baseline: "Unranked", m3: "Page 1", m6: "Top 5" },
+                { keyword: "calcium chloride vs silica gel", difficulty: "Easy", baseline: "Unranked", m3: "Top 10", m6: "Top 3" },
+                { keyword: "best desiccant for shipping containers", difficulty: "Easy", baseline: "Unranked", m3: "Top 10", m6: "Top 3" },
+                { keyword: "how many desiccants for container", difficulty: "Easy", baseline: "Unranked", m3: "Featured Snippet", m6: "Featured Snippet" },
+                { keyword: "desiccant garment shipping", difficulty: "Easy", baseline: "Unranked", m3: "Top 5", m6: "Top 1" },
+                { keyword: "super dry vs absortech", difficulty: "Easy", baseline: "Unranked", m3: "Top 3", m6: "Top 1" }
+            ]
+        };
+
+        function loadData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return stored ? JSON.parse(stored) : defaultData;
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            showSaveIndicator();
+        }
+
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 2000);
+        }
+
+        function addTask() {
+            const data = loadData();
+            const newTask = {
+                id: Math.max(...data.tasks.map(t => t.id), 0) + 1,
+                title: document.getElementById('taskTitle').value,
+                type: document.getElementById('taskType').value,
+                status: document.getElementById('taskStatus').value,
+                dueDate: document.getElementById('taskDueDate').value,
+                assignee: document.getElementById('taskAssignee').value,
+                description: document.getElementById('taskDescription').value
+            };
+
+            if (!newTask.title) {
+                alert('請輸入任務標題');
+                return;
+            }
+
+            data.tasks.push(newTask);
+            saveData(data);
+
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+            document.getElementById('taskDueDate').value = '';
+            document.getElementById('taskAssignee').value = '';
+
+            renderTasks();
+            updateMetrics();
+        }
+
+        function toggleTask(id) {
+            const data = loadData();
+            const task = data.tasks.find(t => t.id === id);
+            if (task) {
+                task.status = task.status === 'completed' ? 'pending' : 'completed';
+                saveData(data);
+                renderTasks();
+                updateMetrics();
+            }
+        }
+
+        function deleteTask(id) {
+            if (!confirm('確定刪除呢個任務?')) return;
+            const data = loadData();
+            data.tasks = data.tasks.filter(t => t.id !== id);
+            saveData(data);
+            renderTasks();
+            updateMetrics();
+        }
+
+        function renderTasks() {
+            const data = loadData();
+            const list = document.getElementById('tasksList');
+            list.innerHTML = data.tasks.map(task => `
+                <div class="task-item ${task.status === 'completed' ? 'completed' : ''}">
+                    <div style="flex-shrink: 0; margin-right: 16px;">
+                        <input type="checkbox" class="checkbox" ${task.status === 'completed' ? 'checked' : ''}
+                               onchange="toggleTask(${task.id})">
+                    </div>
+                    <div class="task-content">
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-meta">
+                            <span class="task-badge badge-${task.type.toLowerCase()}">${task.type}</span>
+                            <span>📅 ${task.dueDate || '—'}</span>
+                            <span>👤 ${task.assignee || '—'}</span>
+                        </div>
+                        ${task.description ? `<div style="color: #666; font-size: 13px; margin-top: 6px;">${task.description}</div>` : ''}
+                    </div>
+                    <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})">刪除</button>
+                </div>
+            `).join('');
+        }
+
+        function renderKeywords() {
+            const data = loadData();
+            const table = document.getElementById('keywordTable');
+            table.innerHTML = data.keywords.map(kw => `
+                <tr>
+                    <td><strong>${kw.keyword}</strong></td>
+                    <td>${kw.difficulty}</td>
+                    <td>${kw.baseline}</td>
+                    <td>${kw.m3}</td>
+                    <td>${kw.m6}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateMetrics() {
+            const data = loadData();
+            const completed = data.tasks.filter(t => t.status === 'completed').length;
+            const total = data.tasks.length;
+            const percent = Math.round((completed / total) * 100);
+
+            document.getElementById('totalProgress').textContent = percent;
+            document.getElementById('tasksProgress').textContent = `${completed} of ${total} tasks`;
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        // 初始化
+        window.addEventListener('load', () => {
+            renderTasks();
+            renderKeywords();
+            updateMetrics();
+        });
+
+        // 自動保存
+        document.addEventListener('change', () => {
+            setTimeout(showSaveIndicator, 100);
+        });
+    </script>
 </body>
 </html>
