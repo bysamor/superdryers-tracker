@@ -157,6 +157,18 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink
 </head>
 <body>
 
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="display:none;position:fixed;inset:0;background:rgba(11,31,58,0.95);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px)">
+  <div style="background:white;border-radius:16px;padding:40px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center">
+    <div style="font-size:32px;margin-bottom:16px">🔒</div>
+    <h2 style="color:#0B1F3A;margin-bottom:8px;font-size:24px">Edit Mode</h2>
+    <p style="color:#6B7E94;margin-bottom:24px;font-size:14px">Enter password to update tasks</p>
+    <input type="password" id="pwInput" placeholder="Enter password" style="width:100%;padding:12px;border:1.5px solid #D0DEE8;border-radius:8px;font-size:14px;margin-bottom:16px;font-family:inherit" onkeypress="if(event.key==='Enter') checkPassword()">
+    <button onclick="checkPassword()" style="width:100%;padding:12px;background:#1A6FAF;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;transition:background 0.2s">Unlock</button>
+    <p style="color:#6B7E94;margin-top:16px;font-size:12px">Other users see read-only view</p>
+  </div>
+</div>
+
 <!-- HEADER -->
 <div class="header">
   <div class="header-inner">
@@ -169,6 +181,10 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink
     </div>
     <div class="header-right">
       <div class="live-pill"><span class="live-dot"></span>Live Progress</div>
+      <div id="authStatus" style="display:none;text-align:right;border-left:1px solid rgba(255,255,255,0.2);padding-left:16px">
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:4px">🔓 Edit Mode</div>
+        <button onclick="logout()" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);padding:4px 12px;border-radius:4px;font-size:11px;cursor:pointer;transition:all 0.2s">Logout</button>
+      </div>
       <div style="text-align:right">
         <div class="header-pct" id="hpct">0%</div>
         <div class="header-pct-label">Complete</div>
@@ -409,6 +425,36 @@ const PHASES=[
   ]},
 ];
 
+// PASSWORD PROTECTION
+const PASSWORD='superdryers2026';
+let isEditing=localStorage.getItem('sd_editing')==='true';
+
+function checkPassword(){
+  const pw=document.getElementById('pwInput').value;
+  if(pw===PASSWORD){
+    isEditing=true;
+    localStorage.setItem('sd_editing','true');
+    document.getElementById('loginScreen').style.display='none';
+    document.body.style.overflow='auto';
+  }else{
+    alert('❌ Incorrect password');
+  }
+}
+
+function logout(){
+  isEditing=false;
+  localStorage.removeItem('sd_editing');
+  location.reload();
+}
+
+// Show login if not authenticated
+if(!isEditing){
+  document.getElementById('loginScreen').style.display='flex';
+  document.body.style.overflow='hidden';
+}else{
+  document.getElementById('authStatus').style.display='block';
+}
+
 let done=JSON.parse(localStorage.getItem('sd_dash')||JSON.stringify({
   'critical_0':true,'critical_1':true,'critical_2':true,'critical_3':true,'critical_4':true,
   'critical_5':true,'critical_6':true,'critical_7':true,'critical_8':true,'critical_9':true,
@@ -469,6 +515,11 @@ function toggle_phase(hdr){
 }
 
 function tick(k,el){
+  if(!isEditing){
+    document.getElementById('loginScreen').style.display='flex';
+    document.body.style.overflow='hidden';
+    return;
+  }
   done[k]=!done[k];
   el.classList.toggle('done',done[k]);
   save();updateStats();render();
