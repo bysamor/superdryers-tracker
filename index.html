@@ -473,8 +473,11 @@ function showLogin(){
 }
 
 function enterReadOnly(){
+  isEditing=false;
+  localStorage.removeItem('sd_editing');
   document.getElementById('loginScreen').style.display='none';
   document.body.style.overflow='auto';
+  updateAuthUI();
 }
 
 let done=JSON.parse(localStorage.getItem('sd_dash')||JSON.stringify({
