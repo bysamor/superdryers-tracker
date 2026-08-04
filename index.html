@@ -443,6 +443,7 @@ function checkPassword(){
     localStorage.setItem('sd_editing','true');
     document.getElementById('loginScreen').style.display='none';
     document.body.style.overflow='auto';
+    updateAuthUI();
   }else{
     alert('❌ Incorrect password');
   }
