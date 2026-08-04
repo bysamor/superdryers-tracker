@@ -161,11 +161,15 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink
 <div id="loginScreen" style="display:none;position:fixed;inset:0;background:rgba(11,31,58,0.95);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px)">
   <div style="background:white;border-radius:16px;padding:40px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center">
     <div style="font-size:32px;margin-bottom:16px">🔒</div>
-    <h2 style="color:#0B1F3A;margin-bottom:8px;font-size:24px">Edit Mode</h2>
-    <p style="color:#6B7E94;margin-bottom:24px;font-size:14px">Enter password to update tasks</p>
-    <input type="password" id="pwInput" placeholder="Enter password" style="width:100%;padding:12px;border:1.5px solid #D0DEE8;border-radius:8px;font-size:14px;margin-bottom:16px;font-family:inherit" onkeypress="if(event.key==='Enter') checkPassword()">
-    <button onclick="checkPassword()" style="width:100%;padding:12px;background:#1A6FAF;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;transition:background 0.2s">Unlock</button>
-    <p style="color:#6B7E94;margin-top:16px;font-size:12px">Other users see read-only view</p>
+    <h2 style="color:#0B1F3A;margin-bottom:8px;font-size:24px">Access Mode</h2>
+    <p style="color:#6B7E94;margin-bottom:24px;font-size:14px">Choose your viewing mode</p>
+    <button onclick="enterReadOnly()" style="width:100%;padding:12px;background:#6B7E94;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;transition:background 0.2s;margin-bottom:12px">📖 Read-Only View</button>
+    <div style="color:#D0DEE8;margin-bottom:12px;font-size:12px">or</div>
+    <div style="margin-bottom:16px">
+      <input type="password" id="pwInput" placeholder="Enter password" style="width:100%;padding:12px;border:1.5px solid #D0DEE8;border-radius:8px;font-size:14px;margin-bottom:8px;font-family:inherit" onkeypress="if(event.key==='Enter') checkPassword()">
+      <button onclick="checkPassword()" style="width:100%;padding:12px;background:#1A6FAF;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;transition:background 0.2s">🔓 Edit Mode</button>
+    </div>
+    <p style="color:#6B7E94;margin-top:16px;font-size:12px">Read-Only = View only | Edit Mode = Password protected</p>
   </div>
 </div>
 
@@ -465,6 +469,11 @@ function showLogin(){
   document.getElementById('pwInput').value='';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('pwInput').focus();
+}
+
+function enterReadOnly(){
+  document.getElementById('loginScreen').style.display='none';
+  document.body.style.overflow='auto';
 }
 
 updateAuthUI();
