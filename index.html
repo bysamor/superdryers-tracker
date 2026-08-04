@@ -406,7 +406,15 @@ const PHASES=[
   ]},
 ];
 
-let done=JSON.parse(localStorage.getItem('sd_dash')||'{}');
+let done=JSON.parse(localStorage.getItem('sd_dash')||JSON.stringify({
+  'critical_0':true,'critical_1':true,'critical_2':true,'critical_3':true,'critical_4':true,
+  'critical_5':true,'critical_6':true,'critical_7':true,'critical_8':true,'critical_9':true,
+  'schema_0':true,'schema_1':true,'schema_2':true,'schema_3':true,'schema_4':true,
+  'schema_5':true,'schema_6':true,
+  'content_0':true,'content_1':true,'content_2':true,'content_3':true,'content_4':true,
+  'content_5':true,'content_6':true,'content_7':true,
+  'expansion_0':true
+}));
 let cf='all';
 function save(){localStorage.setItem('sd_dash',JSON.stringify(done));}
 
