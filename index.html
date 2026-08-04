@@ -477,8 +477,6 @@ function enterReadOnly(){
   document.body.style.overflow='auto';
 }
 
-updateAuthUI();
-
 let done=JSON.parse(localStorage.getItem('sd_dash')||JSON.stringify({
   'critical_0':true,'critical_1':true,'critical_2':true,'critical_3':true,'critical_4':true,
   'critical_5':true,'critical_6':true,'critical_7':true,'critical_8':true,'critical_9':true,
@@ -567,6 +565,7 @@ function updateStats(){
 }
 
 render();
+updateAuthUI();
 </script>
 </body>
 </html>
